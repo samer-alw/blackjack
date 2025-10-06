@@ -6,7 +6,6 @@ function getRandomNumber(max: number = 13): number {
   return Math.floor(Math.random() * max);
 }
 
-
 function getRandomSuit(): string {
   const suits = ["♠", "♥", "♦", "♣"];
   return suits[getRandomNumber(suits.length)];
@@ -48,11 +47,33 @@ function calculateScore(cards: { number: string; suit: string }[]): number {
   return total;
 }
 
+function dealerTurn(
+  currentCards: { number: string; suit: string }[]
+): { number: string; suit: string }[] {
+  let cards = [...currentCards];
+
+  cards.push(CardGen());
+
+  while (calculateScore(cards) < 16) {
+    cards.push(CardGen());
+  }
+
+  return cards;
+}
 
 export default function BlackjackGame() {
-  const [dealerCards, setDealerCards] = useState<{ number: string; suit: string }[]>([]);
-  const [playerCards, setPlayerCards] = useState<{ number: string; suit: string }[]>([]);
+  const [dealerCards, setDealerCards] = useState<
+    { number: string; suit: string }[]
+  >([]);
+  const [playerCards, setPlayerCards] = useState<
+    { number: string; suit: string }[]
+  >([]);
   const [isStand, setIsStand] = useState(false);
+
+  const [chips, setChips] = useState(100);
+  const [bet, setBet] = useState(100);
+  const [message, setMessage] = useState("");
+  const [roundOver, setRoundOver] = useState(false);
 
   useEffect(() => {
     const initialPlayer = [CardGen(), CardGen()];
@@ -66,11 +87,21 @@ export default function BlackjackGame() {
   };
 
   const stand = () => {
+    if (isStand) return;
+
     setIsStand(true);
+
+    setDealerCards((prev) => {
+      const finalHand = dealerTurn(prev);
+      return finalHand;
+    });
+    setRoundOver(true);
   };
 
   const reset = () => {
     setIsStand(false);
+    setRoundOver(false);
+    setMessage("");
     setPlayerCards([CardGen(), CardGen()]);
     setDealerCards([CardGen()]);
   };
@@ -84,13 +115,54 @@ export default function BlackjackGame() {
   useEffect(() => {
     if (playerScore > 21) {
       setIsStand(true);
+      setRoundOver(true);
     }
   }, [playerScore]);
 
+  useEffect(() => {
+    if (!roundOver) return;
+    if (message) return;
+
+    const playerTotal = calculateScore(playerCards);
+    const dealerTotal = calculateScore(dealerCards);
+
+    const timeout = setTimeout(() => {
+      if (playerTotal > 21) {
+        setMessage("💥 Player busts! You lose!");
+        setChips((prev) => prev - bet);
+      } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
+        setMessage("🎉 You win!");
+        setChips((prev) => prev + bet);
+      } else if (dealerTotal === playerTotal) {
+        setMessage("🤝 It's a draw!");
+      } else {
+        setMessage("😞 Dealer wins!");
+        setChips((prev) => prev - bet);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [roundOver, dealerCards, playerCards, message, bet]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen space-y-6">
       <h1 className="text-2xl font-bold">Blackjack Game</h1>
+      {/* 💰 Chip Counter */}
+      <div className="absolute top-4 left-4 bg-gray-100 p-3 rounded-lg shadow text-sm">
+        <p className="font-semibold mb-1">💰 Chips: {chips}</p>
+
+        <div className="flex gap-2">
+          {[10, 50, 100, 500].map((amount) => (
+            <button
+              key={amount}
+              onClick={() => setChips((prev) => prev + amount)}
+              className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              +{amount}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
         <h2 className="text-lg font-semibold mb-2">Dealer</h2>
@@ -108,6 +180,12 @@ export default function BlackjackGame() {
       <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
         <h2 className="text-lg font-semibold mb-2">Player</h2>
         <p>Score: {playerScore}</p>
+        {message && (
+          <div className="mt-4 p-3 bg-gray-200 rounded-lg text-center text-lg font-semibold">
+            {message}
+          </div>
+        )}
+
         <ul className="space-y-1 text-lg mb-2">
           {playerCards.map((card, i) => (
             <li key={i}>
@@ -132,6 +210,36 @@ export default function BlackjackGame() {
           >
             Stand
           </button>
+          <button
+            onClick={reset}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+          >
+            Reset
+          </button>
+        </div>
+        {/* Bet Controls */}
+        <div className="mt-4 text-center">
+          <label className="mr-2 font-semibold">Bet:</label>
+          <input
+            type="number"
+            value={bet}
+            onChange={(e) => setBet(Number(e.target.value))}
+            min={1}
+            max={chips}
+            className="border rounded text-center w-20"
+          />
+
+          <div className="flex gap-2 justify-center mt-2">
+            {[10, 50, 100].map((amount) => (
+              <button
+                key={amount}
+                onClick={() => setBet((prev) => prev + amount)}
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                +{amount}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
