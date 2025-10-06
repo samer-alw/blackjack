@@ -1,29 +1,44 @@
-function getRandomNumber(max: number = 12): number {
+function getRandomNumber(max: number = 13): number {
   return Math.floor(Math.random() * max);
 }
 
-export default function CardGenPage() {
-  const cardNumbers = [
-    getRandomNumber(),
-    getRandomNumber(),
-    getRandomNumber(),
-    getRandomNumber(),
-  ];
+function getRandomSuit(): string {
+  const suits = ["♠", "♥", "♦", "♣"];
+  const index = getRandomNumber(suits.length);
+  return suits[index];
+}
 
-  const cardSuits = [
-    getRandomNumber(3),
-    getRandomNumber(3),
-    getRandomNumber(3),
-    getRandomNumber(3),
-  ];
+function CardGen() {
+  const num = getRandomNumber(13) + 1;
+  const suit = getRandomSuit();
+
+  const number =
+    num === 1
+      ? "A"
+      : num === 11
+      ? "J"
+      : num === 12
+      ? "Q"
+      : num === 13
+      ? "K"
+      : num.toString();
+
+  return { number, suit };
+}
+
+export default function RandomThreeCards() {
+  const cards = Array.from({ length: 3 }, CardGen);
 
   return (
-    <div>
-        {cardNumbers.map((num, i) => (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">Random Card Gen</h1>
+      <ul className="text-xl space-y-2">
+        {cards.map((card, i) => (
           <li key={i}>
-            Card Num: {num} &nbsp; S: {cardSuits[i]}
+            {card.number} {card.suit}
           </li>
         ))}
+      </ul>
     </div>
   );
 }
