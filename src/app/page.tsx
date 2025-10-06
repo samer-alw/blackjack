@@ -81,6 +81,13 @@ export default function BlackjackGame() {
   const playerScore = calculateScore(playerCards);
   const dealerScore = calculateScore(dealerCards);
 
+  useEffect(() => {
+    if (playerScore > 21) {
+      setIsStand(true);
+    }
+  }, [playerScore]);
+
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen space-y-6">
       <h1 className="text-2xl font-bold">Blackjack Game</h1>
