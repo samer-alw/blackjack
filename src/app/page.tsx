@@ -30,6 +30,25 @@ function CardGen() {
   return { number, suit };
 }
 
+function calculateScore(cards: { number: string; suit: string }[]): number {
+  let total = 0;
+
+  for (const card of cards) {
+    const n = card.number;
+
+    if (n === "A") {
+      total += 1;
+    } else if (n === "J" || n === "Q" || n === "K") {
+      total += 10;
+    } else {
+      total += Number(n);
+    }
+  }
+
+  return total;
+}
+
+
 export default function BlackjackGame() {
   const [dealerCards, setDealerCards] = useState<{ number: string; suit: string }[]>([]);
   const [playerCards, setPlayerCards] = useState<{ number: string; suit: string }[]>([]);
@@ -59,12 +78,16 @@ export default function BlackjackGame() {
   const getSuitColor = (suit: string) =>
     suit === "♥" || suit === "♦" ? "text-red-600" : "text-black";
 
+  const playerScore = calculateScore(playerCards);
+  const dealerScore = calculateScore(dealerCards);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen space-y-6">
       <h1 className="text-2xl font-bold">Blackjack Game</h1>
 
       <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
         <h2 className="text-lg font-semibold mb-2">Dealer</h2>
+        <p>Score: {dealerScore}</p>
         <ul className="space-y-1 text-lg mb-2">
           {dealerCards.map((card, i) => (
             <li key={i}>
@@ -77,6 +100,7 @@ export default function BlackjackGame() {
 
       <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
         <h2 className="text-lg font-semibold mb-2">Player</h2>
+        <p>Score: {playerScore}</p>
         <ul className="space-y-1 text-lg mb-2">
           {playerCards.map((card, i) => (
             <li key={i}>
