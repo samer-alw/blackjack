@@ -75,6 +75,15 @@ export default function BlackjackGame() {
   const [message, setMessage] = useState("");
   const [roundOver, setRoundOver] = useState(false);
 
+  const [history, setHistory] = useState<
+    {
+      dealerCards: { number: string; suit: string }[];
+      playerCards: { number: string; suit: string }[];
+      outcome: string;
+      betChange: number;
+    }[]
+  >([]);
+
   useEffect(() => {
     const initialPlayer = [CardGen(), CardGen()];
     const initialDealer = [CardGen()];
@@ -127,18 +136,37 @@ export default function BlackjackGame() {
     const dealerTotal = calculateScore(dealerCards);
 
     const timeout = setTimeout(() => {
+      let result = "";
+      let betChange = 0;
+
       if (playerTotal > 21) {
-        setMessage("💥 Player busts! You lose!");
+        result = "💥 Player busts! You lose!";
+        betChange = -bet;
         setChips((prev) => prev - bet);
       } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
-        setMessage("🎉 You win!");
+        result = "🎉 You win!";
+        betChange = +bet;
         setChips((prev) => prev + bet);
       } else if (dealerTotal === playerTotal) {
-        setMessage("🤝 It's a draw!");
+        result = "🤝 It's a draw!";
+        betChange = 0;
       } else {
-        setMessage("😞 Dealer wins!");
+        result = "😞 Dealer wins!";
+        betChange = -bet;
         setChips((prev) => prev - bet);
       }
+
+      setMessage(result);
+
+      setHistory((prev) => [
+        ...prev,
+        {
+          dealerCards,
+          playerCards,
+          outcome: result,
+          betChange,
+        },
+      ]);
     }, 300);
 
     return () => clearTimeout(timeout);
@@ -146,7 +174,7 @@ export default function BlackjackGame() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen space-y-6">
-      <h1 className="text-2xl font-bold">Blackjack Game</h1>
+      <h1 className="text-2xl font-bold">MAC takehome-2025</h1>
       {/* 💰 Chip Counter */}
       <div className="absolute top-4 left-4 bg-gray-100 p-3 rounded-lg shadow text-sm">
         <p className="font-semibold mb-1">💰 Chips: {chips}</p>
@@ -241,6 +269,38 @@ export default function BlackjackGame() {
             ))}
           </div>
         </div>
+      </div>
+      {/* 🧾 Game History Sidebar */}
+      <div className="absolute right-4 top-4 bg-gray-100 p-4 rounded-lg shadow w-64 h-[90vh] overflow-y-auto text-sm">
+        <h2 className="font-bold text-lg mb-2 text-center">Game History</h2>
+        {history.length === 0 && (
+          <p className="text-center text-gray-500">No games yet</p>
+        )}
+        {history.map((game, index) => (
+          <div key={index} className="mb-4 border-b pb-2">
+            <p className="font-semibold">Game {index + 1}</p>
+            <p>
+              Dealer:{" "}
+              {game.dealerCards.map((c) => `${c.number}${c.suit}`).join(" ")}
+            </p>
+            <p>
+              Player:{" "}
+              {game.playerCards.map((c) => `${c.number}${c.suit}`).join(" ")}
+            </p>
+            <p>{game.outcome}</p>
+            <p
+              className={`font-semibold ${
+                game.betChange > 0
+                  ? "text-green-600"
+                  : game.betChange < 0
+                  ? "text-red-600"
+                  : "text-gray-700"
+              }`}
+            >
+              {game.betChange > 0 ? `+${game.betChange}` : game.betChange}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
