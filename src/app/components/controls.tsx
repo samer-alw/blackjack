@@ -1,13 +1,20 @@
 "use client";
 
+interface ControlsProps {
+  hit: () => void;
+  stand: () => void;
+  fetchRecommendation: () => void;
+  recommendation: string;
+  isStand: boolean;
+}
+
 export function Controls({
   hit,
   stand,
-  reset,
   fetchRecommendation,
   recommendation,
   isStand,
-}: any) {
+}: ControlsProps) {
   return (
     <div className="flex flex-col items-center gap-2 mt-3">
       <div className="flex gap-3 justify-center">
@@ -25,12 +32,6 @@ export function Controls({
         >
           Stand
         </button>
-        <button
-          onClick={reset}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-        >
-          Reset
-        </button>
       </div>
 
       <button
@@ -39,6 +40,7 @@ export function Controls({
       >
         Recommend Move
       </button>
+
       {recommendation && (
         <div className="mt-2 p-2 border rounded bg-gray-50 text-sm">
           <strong>Suggestion:</strong> {recommendation}

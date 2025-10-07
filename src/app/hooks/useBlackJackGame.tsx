@@ -11,7 +11,7 @@ export function useBlackjackGame() {
   >([]);
   const [isStand, setIsStand] = useState(false);
   const [chips, setChips] = useState(100);
-  const [bet, setBet] = useState(100);
+  const [bet, setBet] = useState(0);
   const [message, setMessage] = useState("");
   const [roundOver, setRoundOver] = useState(false);
   const [history, setHistory] = useState<any[]>(() => {

@@ -1,4 +1,5 @@
 "use client";
+
 import { useBlackjackGame } from "./hooks/useBlackJackGame";
 import DealerHand from "./components/dealerHand";
 import PlayerHand from "./components/playerHand";
@@ -6,9 +7,11 @@ import ChipControls from "./components/chipControl";
 import BetControls from "./components/betControl";
 import { fetchAIRecommendation } from "./utils/aiRecommendation";
 import Link from "next/link";
+import { Controls } from "./components/controls"; // Named import
 
 export default function BlackjackGame() {
   const game = useBlackjackGame();
+  const isGameOver = !!game.message;
 
   const getRecommendation = async () => {
     try {
@@ -24,6 +27,12 @@ export default function BlackjackGame() {
       console.error(err);
       game.setRecommendation("Error fetching recommendation");
     }
+  };
+
+  const handleReset = () => {
+    game.reset(); // reset game state, cards, scores, etc.
+    game.setBet(0); // reset bet to go back to betting section
+    game.setRecommendation(""); // clear AI recommendation
   };
 
   return (
@@ -46,6 +55,7 @@ export default function BlackjackGame() {
         dealerCards={game.dealerCards}
         score={game.dealerScore}
         resetSignal={game.resetSignal}
+        faceDown={game.bet === 0}
       />
 
       <PlayerHand
@@ -53,46 +63,37 @@ export default function BlackjackGame() {
         score={game.playerScore}
         message={game.message}
         resetSignal={game.resetSignal}
+        faceDown={game.bet === 0} // flips to face-down automatically
       />
 
-      <div className="flex flex-col items-center gap-2 mt-3">
-        <div className="flex gap-3 justify-center">
-          <button
-            onClick={game.hit}
-            disabled={game.isStand}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-          >
-            Hit
-          </button>
-          <button
-            onClick={game.stand}
-            disabled={game.isStand}
-            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-50"
-          >
-            Stand
-          </button>
-          <button
-            onClick={game.reset}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-          >
-            Reset
-          </button>
-        </div>
+      {/* BET CONTROLS: Show only if no bet is placed */}
+      {game.bet === 0 && (
+        <BetControls bet={game.bet} setBet={game.setBet} chips={game.chips} />
+      )}
 
+      {/* GAME CONTROLS: Show only if a bet has been placed */}
+      {game.bet > 0 && !isGameOver && (
+        <Controls
+          hit={game.hit}
+          stand={game.stand}
+          fetchRecommendation={getRecommendation}
+          recommendation={game.recommendation}
+          isStand={game.isStand}
+        />
+      )}
+
+      {isGameOver && (
         <button
-          onClick={getRecommendation}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          onClick={() => {
+            game.reset();
+            game.setBet(0); // flips cards back to face-down
+            game.setRecommendation("");
+          }}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
         >
-          Recommend Move
+          Play Again
         </button>
-        {game.recommendation && (
-          <div className="mt-2 p-2 border rounded bg-gray-50 text-sm">
-            <strong>Suggestion:</strong> {game.recommendation}
-          </div>
-        )}
-      </div>
-
-      <BetControls bet={game.bet} setBet={game.setBet} chips={game.chips} />
+      )}
     </div>
   );
 }

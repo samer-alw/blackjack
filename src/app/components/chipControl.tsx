@@ -1,17 +1,46 @@
 "use client";
 
-export default function ChipControls({ chips, setChips }: any) {
+import { useState } from "react";
+
+interface TokenAdderProps {
+  chips: number;
+  setChips: (amount: number) => void;
+}
+
+export default function TokenAdder({ chips, setChips }: TokenAdderProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const addTokens = (amount: number) => {
+    setChips(chips + amount);
+    setIsOpen(false); // close popup after adding
+  };
+
   return (
-    <div className="absolute top-4 left-4 bg-gray-100 p-3 rounded-lg shadow text-sm">
-      <p className="font-semibold mb-1">💰 Chips: {chips}</p>
-      <div className="flex gap-2">
-        {[10, 50, 100, 500].map((a) => (
+    <div className="absolute top-4 left-4">
+      {/* Toggle Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 text-sm"
+      >
+        Tokens: {chips}
+      </button>
+
+      {/* Popup Buttons */}
+      <div
+        className={`mt-2 flex flex-col space-y-2 bg-gray-800 p-3 rounded-lg shadow-lg transform transition-all duration-300 ease-out
+        ${
+          isOpen
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-95 pointer-events-none"
+        }`}
+      >
+        {[10, 50, 100].map((amount) => (
           <button
-            key={a}
-            onClick={() => setChips((prev: number) => prev + a)}
-            className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            key={amount}
+            onClick={() => addTokens(amount)}
+            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 text-sm"
           >
-            +{a}
+            +{amount} Tokens
           </button>
         ))}
       </div>

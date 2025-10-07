@@ -6,32 +6,22 @@ export default function PlayerHand({
   score,
   message,
   resetSignal,
+  faceDown = false,
 }: any) {
   const [animatedPlayerCards, setAnimatedPlayerCards] = useState<
     { number: string; suit: string; show: boolean }[]
   >([]);
 
   useEffect(() => {
-    if (animatedPlayerCards.length === 0) {
+    if (faceDown) {
+      // Hide all cards if faceDown
+      setAnimatedPlayerCards(playerCards.map((c) => ({ ...c, show: false })));
+    } else {
+      // Show all cards immediately if faceUp
       setAnimatedPlayerCards(playerCards.map((c) => ({ ...c, show: true })));
-      return;
     }
+  }, [playerCards, faceDown]);
 
-    const lastIndex = playerCards.length - 1;
-    const lastCard = playerCards[lastIndex];
-
-    setAnimatedPlayerCards((prev) => [...prev, { ...lastCard, show: false }]);
-
-    setTimeout(() => {
-      setAnimatedPlayerCards((prev) => {
-        const newCards = [...prev];
-        newCards[lastIndex] = { ...newCards[lastIndex], show: true };
-        return newCards;
-      });
-    }, 50);
-  }, [playerCards]);
-
-  // Clear animation on reset
   useEffect(() => {
     setAnimatedPlayerCards([]);
   }, [resetSignal]);
@@ -39,7 +29,7 @@ export default function PlayerHand({
   return (
     <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
       <h2 className="text-lg font-semibold mb-2">Player</h2>
-      <p>Score: {score}</p>
+      <p>Score: {!faceDown ? score : "?"}</p>
       {message && (
         <div className="mt-4 p-3 bg-gray-200 rounded-lg text-lg font-semibold">
           {message}
@@ -49,21 +39,27 @@ export default function PlayerHand({
         {animatedPlayerCards.map((card, i) => (
           <div
             key={i}
-            className={`w-18 h-24 rounded-lg flex flex-col justify-center items-center p-1 bg-white
+            className={`w-18 h-24 rounded-lg flex flex-col justify-center items-center p-1
+              bg-white border shadow
               ${
                 card.suit === "♥" || card.suit === "♦"
                   ? "text-red-600"
                   : "text-black"
               }
-              transition-all duration-1000 ease-out
-              ${
-                card.show
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-4"
+              transition-transform duration-500 ease-in-out
+              transform ${
+                faceDown || !card.show ? "rotate-y-180" : "rotate-y-0"
               }`}
+            style={{ perspective: "600px" }}
           >
-            <div className="text-2xl font-extrabold">{card.number}</div>
-            <div className="text-3xl font-bold">{card.suit}</div>
+            {faceDown || !card.show ? (
+              <div className="w-full h-full bg-gray-800 rounded-lg"></div>
+            ) : (
+              <>
+                <div className="text-2xl font-extrabold">{card.number}</div>
+                <div className="text-3xl font-bold">{card.suit}</div>
+              </>
+            )}
           </div>
         ))}
       </div>
