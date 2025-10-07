@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { CardGen, calculateScore, dealerTurn } from "../utils/helperFunctions";
 
-// ✅ Define types
+//Define types
 type Card = { number: string; suit: string };
 
 type HistoryEntry = {
@@ -40,7 +40,7 @@ export function useBlackjackGame() {
   const [recommendation, setRecommendation] = useState("");
   const [resetSignal, setResetSignal] = useState(0);
 
-  // ✅ Calculate scores once
+  // Calculate scores once
   const playerScore = calculateScore(playerCards);
   const dealerScore = calculateScore(dealerCards);
 

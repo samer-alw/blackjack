@@ -1,4 +1,4 @@
-// ✅ Define and export Card type
+// Define and export Card type
 export type Card = { number: string; suit: string };
 
 export function getRandomNumber(max: number = 13): number {
@@ -10,7 +10,7 @@ export function getRandomSuit(): string {
   return suits[getRandomNumber(suits.length)];
 }
 
-// ✅ CardGen returns a Card
+// CardGen returns a Card
 export function CardGen(): Card {
   const num = getRandomNumber(13) + 1;
   const suit = getRandomSuit();
@@ -27,7 +27,7 @@ export function CardGen(): Card {
   return { number, suit };
 }
 
-// ✅ Calculate blackjack score
+// Calculate blackjack score
 export function calculateScore(cards: Card[]): number {
   let total = 0;
   for (const card of cards) {
@@ -39,7 +39,7 @@ export function calculateScore(cards: Card[]): number {
   return total;
 }
 
-// ✅ Dealer plays until 16+
+// Dealer plays until 16+
 export function dealerTurn(cards: Card[]): Card[] {
   const hand = [...cards, CardGen()];
   while (calculateScore(hand) < 16) {

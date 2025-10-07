@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-// ✅ Define card and props types
+//Define card and props types
 type Card = { number: string; suit: string };
 
 interface AnimatedCard extends Card {
