@@ -84,6 +84,23 @@ export default function BlackjackGame() {
     }[]
   >([]);
 
+  const [recommendation, setRecommendation] = useState<string>("");
+
+  async function fetchRecommendation() {
+    const response = await fetch("/api", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerCards,
+        dealerCard: dealerCards[0],
+        bet,
+        chips,
+      }),
+    });
+    const body = await response.json();
+    setRecommendation(body.output);
+  }
+
   useEffect(() => {
     const initialPlayer = [CardGen(), CardGen()];
     const initialDealer = [CardGen()];
@@ -93,6 +110,7 @@ export default function BlackjackGame() {
 
   const hit = () => {
     if (!isStand) setPlayerCards((prev) => [...prev, CardGen()]);
+    setRecommendation("");
   };
 
   const stand = () => {
@@ -223,28 +241,46 @@ export default function BlackjackGame() {
           ))}
         </ul>
 
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-col items-center gap-2 mt-3">
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={hit}
+              disabled={isStand}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              Hit
+            </button>
+            <button
+              onClick={stand}
+              disabled={isStand}
+              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-50"
+            >
+              Stand
+            </button>
+            <button
+              onClick={reset}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+            >
+              Reset
+            </button>
+          </div>
+
+          {/* 🧠 Recommend Move button */}
           <button
-            onClick={hit}
-            disabled={isStand}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            onClick={fetchRecommendation}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Hit
+            Recommend Move
           </button>
-          <button
-            onClick={stand}
-            disabled={isStand}
-            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-50"
-          >
-            Stand
-          </button>
-          <button
-            onClick={reset}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
-          >
-            Reset
-          </button>
+
+          {/* 💡 Display AI suggestion */}
+          {recommendation && (
+            <div className="mt-2 p-2 border rounded bg-gray-50 text-sm">
+              <strong>Suggestion:</strong> {recommendation}
+            </div>
+          )}
         </div>
+
         {/* Bet Controls */}
         <div className="mt-4 text-center">
           <label className="mr-2 font-semibold">Bet:</label>
