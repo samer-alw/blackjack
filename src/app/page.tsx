@@ -61,6 +61,59 @@ export default function BlackjackGame() {
   const [history, setHistory] = useState<any[]>([]);
   const [recommendation, setRecommendation] = useState<string>("");
 
+  // Inside BlackjackGame
+  const [animatedDealerCards, setAnimatedDealerCards] = useState<
+    { number: string; suit: string; show: boolean }[]
+  >([]);
+
+  useEffect(() => {
+    // Initialize animated cards with show=false
+    const cardsWithShow = dealerCards.map((c) => ({ ...c, show: false }));
+    setAnimatedDealerCards(cardsWithShow);
+
+    // Staggered animation
+    cardsWithShow.forEach((_, i) => {
+      setTimeout(() => {
+        setAnimatedDealerCards((prev) => {
+          const newCards = [...prev];
+          newCards[i] = { ...newCards[i], show: true };
+          return newCards;
+        });
+      }, i * 300); // 300ms stagger; increase to slow down
+    });
+  }, [dealerCards]);
+
+  // Add a state for animated player cards
+  const [animatedPlayerCards, setAnimatedPlayerCards] = useState<
+    { number: string; suit: string; show: boolean }[]
+  >([]);
+
+  // Whenever playerCards changes, animate only the newest card
+  useEffect(() => {
+    // If no cards, initialize
+    if (animatedPlayerCards.length === 0) {
+      setAnimatedPlayerCards(playerCards.map((c) => ({ ...c, show: true })));
+      return;
+    }
+
+    // Animate only the newest card
+    const lastIndex = playerCards.length - 1;
+    const lastCard = playerCards[lastIndex];
+
+    setAnimatedPlayerCards((prev) => [
+      ...prev,
+      { ...lastCard, show: false }, // add with show=false
+    ]);
+
+    setTimeout(() => {
+      setAnimatedPlayerCards((prev) => {
+        const newCards = [...prev];
+        newCards[lastIndex] = { ...newCards[lastIndex], show: true }; // reveal newest card
+        return newCards;
+      });
+    }, 50); // small delay to trigger transition
+  }, [playerCards]);
+
   // Load chips and history from session storage
   useEffect(() => {
     const savedChips = sessionStorage.getItem("chips");
@@ -103,6 +156,8 @@ export default function BlackjackGame() {
     setPlayerCards([CardGen(), CardGen()]);
     setDealerCards([CardGen()]);
     setRecommendation("");
+    setAnimatedPlayerCards([]);
+    setAnimatedDealerCards([]);
   };
 
   useEffect(() => {
@@ -184,16 +239,26 @@ export default function BlackjackGame() {
         </div>
       </div>
 
-      {/* Dealer */}
       <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
         <h2 className="text-lg font-semibold mb-2">Dealer</h2>
         <p>Score: {dealerScore}</p>
         <ul className="space-y-1 text-lg mb-2">
-          {dealerCards.map((c, i) => (
-            <li key={i}>
-              {c.number} <span className={getSuitColor(c.suit)}>{c.suit}</span>
-            </li>
-          ))}
+          <div className="flex justify-center gap-2">
+            {animatedDealerCards.map((card, i) => (
+              <div
+                key={i}
+                className={`w-18 h-24 rounded-lg flex flex-col justify-center items-center p-1 bg-white
+        ${
+          card.suit === "♥" || card.suit === "♦" ? "text-red-600" : "text-black"
+        }
+        transition-all duration-1000 ease-out
+        ${card.show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+              >
+                <div className="text-2xl font-extrabold">{card.number}</div>
+                <div className="text-3xl font-bold">{card.suit}</div>
+              </div>
+            ))}
+          </div>
         </ul>
       </div>
 
@@ -208,11 +273,22 @@ export default function BlackjackGame() {
         )}
 
         <ul className="space-y-1 text-lg mb-2">
-          {playerCards.map((c, i) => (
-            <li key={i}>
-              {c.number} <span className={getSuitColor(c.suit)}>{c.suit}</span>
-            </li>
-          ))}
+          <div className="flex justify-center gap-2">
+            {animatedPlayerCards.map((card, i) => (
+              <div
+                key={i}
+                className={`w-18 h-24 rounded-lg flex flex-col justify-center items-center p-1 bg-white
+        ${
+          card.suit === "♥" || card.suit === "♦" ? "text-red-600" : "text-black"
+        }
+        transition-all duration-1000 ease-out
+        ${card.show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+              >
+                <div className="text-2xl font-extrabold">{card.number}</div>
+                <div className="text-3xl font-bold">{card.suit}</div>
+              </div>
+            ))}
+          </div>
         </ul>
 
         <div className="flex flex-col items-center gap-2 mt-3">
