@@ -14,29 +14,44 @@ export function useBlackjackGame() {
   const [bet, setBet] = useState(100);
   const [message, setMessage] = useState("");
   const [roundOver, setRoundOver] = useState(false);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>(() => {
+    // ✅ Lazy initializer to load history from localStorage on first render
+    if (typeof window !== "undefined") {
+      const savedHistory = localStorage.getItem("blackjack-history");
+      if (savedHistory) {
+        try {
+          return JSON.parse(savedHistory);
+        } catch (e) {
+          console.error("Failed to parse blackjack history:", e);
+        }
+      }
+    }
+    return [];
+  });
   const [recommendation, setRecommendation] = useState("");
   const [resetSignal, setResetSignal] = useState(0);
 
   const playerScore = calculateScore(playerCards);
   const dealerScore = calculateScore(dealerCards);
 
-  // Load from session
+  // Load chips from session
   useEffect(() => {
     const savedChips = sessionStorage.getItem("chips");
-    const savedHistory = sessionStorage.getItem("history");
     if (savedChips) setChips(Number(savedChips));
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
+
     setPlayerCards([CardGen(), CardGen()]);
     setDealerCards([CardGen()]);
   }, []);
 
-  // Save to session
+  // Save chips to session
   useEffect(() => sessionStorage.setItem("chips", chips.toString()), [chips]);
-  useEffect(
-    () => sessionStorage.setItem("history", JSON.stringify(history)),
-    [history]
-  );
+
+  // ✅ Save history to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("blackjack-history", JSON.stringify(history));
+    }
+  }, [history]);
 
   useEffect(() => {
     if (playerScore > 21) {
@@ -74,7 +89,16 @@ export function useBlackjackGame() {
       setMessage(result);
       setHistory((prev) => [
         ...prev,
-        { dealerCards, playerCards, outcome: result, betChange },
+        {
+          dealerCards,
+          playerCards,
+          outcome: result,
+          betChange,
+          playerScore,
+          dealerScore,
+          date: new Date().toISOString(),
+          bet,
+        },
       ]);
     }, 300);
 

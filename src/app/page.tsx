@@ -4,8 +4,8 @@ import DealerHand from "./components/dealerHand";
 import PlayerHand from "./components/playerHand";
 import ChipControls from "./components/chipControl";
 import BetControls from "./components/betControl";
-import GameHistory from "./components/historyPanel";
 import { fetchAIRecommendation } from "./utils/aiRecommendation";
+import Link from "next/link";
 
 export default function BlackjackGame() {
   const game = useBlackjackGame();
@@ -27,7 +27,17 @@ export default function BlackjackGame() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen space-y-6">
+    <div className="flex flex-col items-center justify-center min-h-screen space-y-6 relative">
+      {/* Top Right History Button */}
+      <div className="absolute top-4 right-4">
+        <Link
+          href="/history"
+          className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 text-sm"
+        >
+          View History
+        </Link>
+      </div>
+
       <h1 className="text-2xl font-bold">MAC takehome-2025</h1>
 
       <ChipControls chips={game.chips} setChips={game.setChips} />
@@ -83,8 +93,6 @@ export default function BlackjackGame() {
       </div>
 
       <BetControls bet={game.bet} setBet={game.setBet} chips={game.chips} />
-
-      <GameHistory history={game.history} />
     </div>
   );
 }
