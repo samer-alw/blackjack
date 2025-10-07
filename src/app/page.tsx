@@ -14,7 +14,6 @@ function getRandomSuit(): string {
 function CardGen() {
   const num = getRandomNumber(13) + 1;
   const suit = getRandomSuit();
-
   const number =
     num === 1
       ? "A"
@@ -25,40 +24,26 @@ function CardGen() {
       : num === 13
       ? "K"
       : num.toString();
-
   return { number, suit };
 }
 
 function calculateScore(cards: { number: string; suit: string }[]): number {
   let total = 0;
-
   for (const card of cards) {
     const n = card.number;
-
-    if (n === "A") {
-      total += 1;
-    } else if (n === "J" || n === "Q" || n === "K") {
-      total += 10;
-    } else {
-      total += Number(n);
-    }
+    if (n === "A") total += 1;
+    else if (["J", "Q", "K"].includes(n)) total += 10;
+    else total += Number(n);
   }
-
   return total;
 }
 
-function dealerTurn(
-  currentCards: { number: string; suit: string }[]
-): { number: string; suit: string }[] {
-  let cards = [...currentCards];
-
-  cards.push(CardGen());
-
-  while (calculateScore(cards) < 16) {
-    cards.push(CardGen());
+function dealerTurn(cards: { number: string; suit: string }[]) {
+  const hand = [...cards, CardGen()];
+  while (calculateScore(hand) < 16) {
+    hand.push(CardGen());
   }
-
-  return cards;
+  return hand;
 }
 
 export default function BlackjackGame() {
@@ -69,44 +54,35 @@ export default function BlackjackGame() {
     { number: string; suit: string }[]
   >([]);
   const [isStand, setIsStand] = useState(false);
-
   const [chips, setChips] = useState(100);
   const [bet, setBet] = useState(100);
   const [message, setMessage] = useState("");
   const [roundOver, setRoundOver] = useState(false);
-
-  const [history, setHistory] = useState<
-    {
-      dealerCards: { number: string; suit: string }[];
-      playerCards: { number: string; suit: string }[];
-      outcome: string;
-      betChange: number;
-    }[]
-  >([]);
-
+  const [history, setHistory] = useState<any[]>([]);
   const [recommendation, setRecommendation] = useState<string>("");
 
-  async function fetchRecommendation() {
-    const response = await fetch("/api", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        playerCards,
-        dealerCard: dealerCards[0],
-        bet,
-        chips,
-      }),
-    });
-    const body = await response.json();
-    setRecommendation(body.output);
-  }
-
+  // Load chips and history from session storage
   useEffect(() => {
-    const initialPlayer = [CardGen(), CardGen()];
-    const initialDealer = [CardGen()];
-    setPlayerCards(initialPlayer);
-    setDealerCards(initialDealer);
+    const savedChips = sessionStorage.getItem("chips");
+    const savedHistory = sessionStorage.getItem("history");
+    if (savedChips) setChips(Number(savedChips));
+    if (savedHistory) setHistory(JSON.parse(savedHistory));
+
+    setPlayerCards([CardGen(), CardGen()]);
+    setDealerCards([CardGen()]);
   }, []);
+
+  // Save chips and history to session storage
+  useEffect(() => sessionStorage.setItem("chips", chips.toString()), [chips]);
+  useEffect(
+    () => sessionStorage.setItem("history", JSON.stringify(history)),
+    [history]
+  );
+
+  const getSuitColor = (suit: string) =>
+    suit === "♥" || suit === "♦" ? "text-red-600" : "text-black";
+  const playerScore = calculateScore(playerCards);
+  const dealerScore = calculateScore(dealerCards);
 
   const hit = () => {
     if (!isStand) setPlayerCards((prev) => [...prev, CardGen()]);
@@ -115,13 +91,8 @@ export default function BlackjackGame() {
 
   const stand = () => {
     if (isStand) return;
-
     setIsStand(true);
-
-    setDealerCards((prev) => {
-      const finalHand = dealerTurn(prev);
-      return finalHand;
-    });
+    setDealerCards((prev) => dealerTurn(prev));
     setRoundOver(true);
   };
 
@@ -131,13 +102,8 @@ export default function BlackjackGame() {
     setMessage("");
     setPlayerCards([CardGen(), CardGen()]);
     setDealerCards([CardGen()]);
+    setRecommendation("");
   };
-
-  const getSuitColor = (suit: string) =>
-    suit === "♥" || suit === "♦" ? "text-red-600" : "text-black";
-
-  const playerScore = calculateScore(playerCards);
-  const dealerScore = calculateScore(dealerCards);
 
   useEffect(() => {
     if (playerScore > 21) {
@@ -147,8 +113,7 @@ export default function BlackjackGame() {
   }, [playerScore]);
 
   useEffect(() => {
-    if (!roundOver) return;
-    if (message) return;
+    if (!roundOver || message) return;
 
     const playerTotal = calculateScore(playerCards);
     const dealerTotal = calculateScore(dealerCards);
@@ -175,68 +140,77 @@ export default function BlackjackGame() {
       }
 
       setMessage(result);
-
       setHistory((prev) => [
         ...prev,
-        {
-          dealerCards,
-          playerCards,
-          outcome: result,
-          betChange,
-        },
+        { dealerCards, playerCards, outcome: result, betChange },
       ]);
     }, 300);
 
     return () => clearTimeout(timeout);
   }, [roundOver, dealerCards, playerCards, message, bet]);
 
+  async function fetchRecommendation() {
+    const response = await fetch("/api", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerCards,
+        dealerCard: dealerCards[0],
+        bet,
+        chips,
+      }),
+    });
+    const body = await response.json();
+    setRecommendation(body.output);
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen space-y-6">
       <h1 className="text-2xl font-bold">MAC takehome-2025</h1>
-      {/* 💰 Chip Counter */}
+
+      {/* 💰 Chips */}
       <div className="absolute top-4 left-4 bg-gray-100 p-3 rounded-lg shadow text-sm">
         <p className="font-semibold mb-1">💰 Chips: {chips}</p>
-
         <div className="flex gap-2">
-          {[10, 50, 100, 500].map((amount) => (
+          {[10, 50, 100, 500].map((a) => (
             <button
-              key={amount}
-              onClick={() => setChips((prev) => prev + amount)}
+              key={a}
+              onClick={() => setChips((prev) => prev + a)}
               className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              +{amount}
+              +{a}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Dealer */}
       <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
         <h2 className="text-lg font-semibold mb-2">Dealer</h2>
         <p>Score: {dealerScore}</p>
         <ul className="space-y-1 text-lg mb-2">
-          {dealerCards.map((card, i) => (
+          {dealerCards.map((c, i) => (
             <li key={i}>
-              {card.number}{" "}
-              <span className={getSuitColor(card.suit)}>{card.suit}</span>
+              {c.number} <span className={getSuitColor(c.suit)}>{c.suit}</span>
             </li>
           ))}
         </ul>
       </div>
 
+      {/* Player */}
       <div className="bg-gray-100 p-4 rounded-xl shadow w-80 text-center">
         <h2 className="text-lg font-semibold mb-2">Player</h2>
         <p>Score: {playerScore}</p>
         {message && (
-          <div className="mt-4 p-3 bg-gray-200 rounded-lg text-center text-lg font-semibold">
+          <div className="mt-4 p-3 bg-gray-200 rounded-lg text-lg font-semibold">
             {message}
           </div>
         )}
 
         <ul className="space-y-1 text-lg mb-2">
-          {playerCards.map((card, i) => (
+          {playerCards.map((c, i) => (
             <li key={i}>
-              {card.number}{" "}
-              <span className={getSuitColor(card.suit)}>{card.suit}</span>
+              {c.number} <span className={getSuitColor(c.suit)}>{c.suit}</span>
             </li>
           ))}
         </ul>
@@ -259,21 +233,19 @@ export default function BlackjackGame() {
             </button>
             <button
               onClick={reset}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
             >
               Reset
             </button>
           </div>
 
-          {/* 🧠 Recommend Move button */}
+          {/* AI Recommendation */}
           <button
             onClick={fetchRecommendation}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Recommend Move
           </button>
-
-          {/* 💡 Display AI suggestion */}
           {recommendation && (
             <div className="mt-2 p-2 border rounded bg-gray-50 text-sm">
               <strong>Suggestion:</strong> {recommendation}
@@ -292,36 +264,40 @@ export default function BlackjackGame() {
             max={chips}
             className="border rounded text-center w-20"
           />
-
           <div className="flex gap-2 justify-center mt-2">
-            {[10, 50, 100].map((amount) => (
+            {[10, 50, 100].map((a) => (
               <button
-                key={amount}
-                onClick={() => setBet((prev) => prev + amount)}
+                key={a}
+                onClick={() => setBet((prev) => prev + a)}
                 className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
-                +{amount}
+                +{a}
               </button>
             ))}
           </div>
         </div>
       </div>
-      {/* 🧾 Game History Sidebar */}
+
+      {/* Game History */}
       <div className="absolute right-4 top-4 bg-gray-100 p-4 rounded-lg shadow w-64 h-[90vh] overflow-y-auto text-sm">
         <h2 className="font-bold text-lg mb-2 text-center">Game History</h2>
         {history.length === 0 && (
           <p className="text-center text-gray-500">No games yet</p>
         )}
-        {history.map((game, index) => (
-          <div key={index} className="mb-4 border-b pb-2">
-            <p className="font-semibold">Game {index + 1}</p>
+        {history.map((game, i) => (
+          <div key={i} className="mb-4 border-b pb-2">
+            <p className="font-semibold">Game {i + 1}</p>
             <p>
               Dealer:{" "}
-              {game.dealerCards.map((c) => `${c.number}${c.suit}`).join(" ")}
+              {game.dealerCards
+                .map((c: any) => `${c.number}${c.suit}`)
+                .join(" ")}
             </p>
             <p>
               Player:{" "}
-              {game.playerCards.map((c) => `${c.number}${c.suit}`).join(" ")}
+              {game.playerCards
+                .map((c: any) => `${c.number}${c.suit}`)
+                .join(" ")}
             </p>
             <p>{game.outcome}</p>
             <p
