@@ -63,16 +63,16 @@ export function calculateOutcome(gameState: GameState) {
   let chipsChange = 0;
 
   if (playerTotal > 21) {
-    message = "💥 Player busts! You lose!";
+    message = "Bust !";
     chipsChange = -gameState.bet;
   } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
-    message = "🎉 You win!";
+    message = "You win!";
     chipsChange = gameState.bet;
   } else if (dealerTotal === playerTotal) {
-    message = "🤝 It's a draw!";
+    message = "It's a draw!";
     chipsChange = 0;
   } else {
-    message = "😞 Dealer wins!";
+    message = "Dealer wins!";
     chipsChange = -gameState.bet;
   }
 

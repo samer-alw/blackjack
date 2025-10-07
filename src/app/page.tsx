@@ -7,7 +7,7 @@ import ChipControls from "./components/chipControl";
 import BetControls from "./components/betControl";
 import { fetchAIRecommendation } from "./utils/aiRecommendation";
 import Link from "next/link";
-import { Controls } from "./components/controls"; // Named import
+import { Controls } from "./components/controls";
 
 export default function BlackjackGame() {
   const game = useBlackjackGame();
@@ -29,71 +29,71 @@ export default function BlackjackGame() {
     }
   };
 
-  const handleReset = () => {
-    game.reset(); // reset game state, cards, scores, etc.
-    game.setBet(0); // reset bet to go back to betting section
-    game.setRecommendation(""); // clear AI recommendation
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen space-y-6 relative">
-      {/* Top Right History Button */}
-      <div className="absolute top-4 right-4">
-        <Link
-          href="/history"
-          className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 text-sm"
-        >
-          View History
+    <div className="grid place-items-center min-h-screen bg-black font-sans text-xl relative p-4">
+      {/* Top Right Buttons */}
+      <div className="absolute top-4 right-4 flex gap-4">
+        <Link href="/">
+          <button className="px-4 py-2 bg-white rounded border border-white hover:bg-gray-300">
+            Home
+          </button>
+        </Link>
+        <Link href="/history">
+          <button className="px-4 py-2 bg-white rounded border border-white hover:bg-gray-300">
+            History
+          </button>
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold">MAC takehome-2025</h1>
+      <div className="w-[70vw] flex flex-col items-center gap-6">
+        <h1 className="text-2xl font-bold text-white">MAC takehome-2025</h1>
 
-      <ChipControls chips={game.chips} setChips={game.setChips} />
+        <ChipControls chips={game.chips} setChips={game.setChips} />
 
-      <DealerHand
-        dealerCards={game.dealerCards}
-        score={game.dealerScore}
-        resetSignal={game.resetSignal}
-        faceDown={game.bet === 0}
-      />
-
-      <PlayerHand
-        playerCards={game.playerCards}
-        score={game.playerScore}
-        message={game.message}
-        resetSignal={game.resetSignal}
-        faceDown={game.bet === 0} // flips to face-down automatically
-      />
-
-      {/* BET CONTROLS: Show only if no bet is placed */}
-      {game.bet === 0 && (
-        <BetControls bet={game.bet} setBet={game.setBet} chips={game.chips} />
-      )}
-
-      {/* GAME CONTROLS: Show only if a bet has been placed */}
-      {game.bet > 0 && !isGameOver && (
-        <Controls
-          hit={game.hit}
-          stand={game.stand}
-          fetchRecommendation={getRecommendation}
-          recommendation={game.recommendation}
-          isStand={game.isStand}
+        <DealerHand
+          dealerCards={game.dealerCards}
+          score={game.dealerScore}
+          resetSignal={game.resetSignal}
+          faceDown={game.bet === 0}
         />
-      )}
 
-      {isGameOver && (
-        <button
-          onClick={() => {
-            game.reset();
-            game.setBet(0); // flips cards back to face-down
-            game.setRecommendation("");
-          }}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-        >
-          Play Again
-        </button>
-      )}
+        <PlayerHand
+          playerCards={game.playerCards}
+          score={game.playerScore}
+          message={game.message}
+          resetSignal={game.resetSignal}
+          faceDown={game.bet === 0}
+        />
+
+        {/* BET CONTROLS */}
+        {game.bet === 0 && (
+          <BetControls bet={game.bet} setBet={game.setBet} chips={game.chips} />
+        )}
+
+        {/* GAME CONTROLS */}
+        {game.bet > 0 && !isGameOver && (
+          <Controls
+            hit={game.hit}
+            stand={game.stand}
+            fetchRecommendation={getRecommendation}
+            recommendation={game.recommendation}
+            isStand={game.isStand}
+          />
+        )}
+
+        {isGameOver && (
+          <button
+            onClick={() => {
+              game.reset();
+              game.setBet(0);
+              game.setRecommendation("");
+            }}
+            className="px-4 py-2 bg-white text-black rounded border border-white hover:bg-gray-300"
+          >
+            Play Again
+          </button>
+        )}
+      </div>
     </div>
   );
 }

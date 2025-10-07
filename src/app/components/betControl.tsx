@@ -8,7 +8,7 @@ interface BetControlsProps {
 }
 
 export default function BetControls({ chips, bet, setBet }: BetControlsProps) {
-  const [tempBet, setTempBet] = useState(0);
+  const [tempBet, setTempBet] = useState(100);
 
   const addToBet = (amount: number) => {
     setTempBet((prev) => Math.min(prev + amount, chips));
@@ -27,7 +27,7 @@ export default function BetControls({ chips, bet, setBet }: BetControlsProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-3 mt-4">
+    <div className="flex flex-col items-center gap-3 mt-4 font-sans text-white">
       <input
         type="number"
         value={tempBet}
@@ -35,7 +35,6 @@ export default function BetControls({ chips, bet, setBet }: BetControlsProps) {
         min={0}
         max={chips}
         className="px-4 py-2 border rounded w-32 text-center"
-        placeholder="Enter bet"
       />
 
       <div className="flex gap-2">
@@ -43,7 +42,7 @@ export default function BetControls({ chips, bet, setBet }: BetControlsProps) {
           <button
             key={amt}
             onClick={() => addToBet(amt)}
-            className="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
+            className="px-3 py-2 bg-white text-black rounded hover:bg-gray-600"
           >
             +{amt}
           </button>
@@ -52,7 +51,7 @@ export default function BetControls({ chips, bet, setBet }: BetControlsProps) {
 
       <button
         onClick={handleSubmit}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        className="px-4 py-2 bg-white text-black rounded-lg hover:bg-blue-700"
       >
         Place Bet
       </button>

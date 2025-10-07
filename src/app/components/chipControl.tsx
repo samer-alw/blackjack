@@ -16,18 +16,18 @@ export default function TokenAdder({ chips, setChips }: TokenAdderProps) {
   };
 
   return (
-    <div className="absolute top-4 left-4">
+    <div className="absolute top-4 left-4 font-sans">
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 text-sm"
+        className="px-3 py-2 bg-yellow-100 text-black rounded-lg hover:bg-blue-500 text-sm"
       >
-        Tokens: {chips}
+        Chips💰: {chips}
       </button>
 
       {/* Popup Buttons */}
       <div
-        className={`mt-2 flex flex-col space-y-2 bg-gray-800 p-3 rounded-lg shadow-lg transform transition-all duration-300 ease-out
+        className={`mt-2 flex flex-col space-y-2 bg-yellow-100 p-3 rounded-lg shadow-lg transform transition-all duration-300 ease-out
         ${
           isOpen
             ? "opacity-100 scale-100"
@@ -38,7 +38,7 @@ export default function TokenAdder({ chips, setChips }: TokenAdderProps) {
           <button
             key={amount}
             onClick={() => addTokens(amount)}
-            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 text-sm"
+            className="px-3 py-2 bg-white text-black rounded-lg hover:bg-green-500 text-sm"
           >
             +{amount} Tokens
           </button>
