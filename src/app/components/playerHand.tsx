@@ -1,27 +1,38 @@
 "use client";
 import { useEffect, useState } from "react";
 
+// ✅ Define card and props types
+type Card = { number: string; suit: string };
+
+interface AnimatedCard extends Card {
+  show: boolean;
+}
+
+interface PlayerHandProps {
+  playerCards: Card[];
+  score: number;
+  message?: string;
+  resetSignal: number;
+  faceDown?: boolean;
+}
+
 export default function PlayerHand({
   playerCards,
   score,
   message,
   resetSignal,
   faceDown = false,
-}: any) {
+}: PlayerHandProps) {
   const [animatedPlayerCards, setAnimatedPlayerCards] = useState<
-    { number: string; suit: string; show: boolean }[]
+    AnimatedCard[]
   >([]);
 
+  // Animate cards based on faceDown prop
   useEffect(() => {
-    if (faceDown) {
-      // Hide all cards if faceDown
-      setAnimatedPlayerCards(playerCards.map((c) => ({ ...c, show: false })));
-    } else {
-      // Show all cards immediately if faceUp
-      setAnimatedPlayerCards(playerCards.map((c) => ({ ...c, show: true })));
-    }
+    setAnimatedPlayerCards(playerCards.map((c) => ({ ...c, show: !faceDown })));
   }, [playerCards, faceDown]);
 
+  // Reset cards on resetSignal
   useEffect(() => {
     setAnimatedPlayerCards([]);
   }, [resetSignal]);

@@ -6,6 +6,13 @@ interface Card {
   suit: string;
 }
 
+interface RequestBody {
+  playerCards: Card[];
+  dealerCard: Card;
+  bet: number;
+  chips: number;
+}
+
 export async function POST(req: Request) {
   try {
     console.log("🔹 Checking Gemini API Key...");
@@ -14,7 +21,8 @@ export async function POST(req: Request) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
 
-    const { playerCards, dealerCard, bet, chips } = await req.json();
+    const { playerCards, dealerCard, bet, chips } =
+      (await req.json()) as RequestBody;
 
     console.log("🃏 Player Cards:", playerCards);
     console.log("🂠 Dealer Card:", dealerCard);
@@ -23,7 +31,7 @@ export async function POST(req: Request) {
     const prompt = `
       You are a blackjack strategy advisor.
       Player cards: ${playerCards
-        .map((c: Card) => `${c.number}${c.suit}`)
+        .map((c) => `${c.number}${c.suit}`)
         .join(", ")}.
       Dealer visible card: ${dealerCard.number}${dealerCard.suit}.
       What move should the player make? (Hit or Stand) reply with one word.
@@ -39,11 +47,15 @@ export async function POST(req: Request) {
     console.log("✅ Gemini output text:", output);
 
     return NextResponse.json({ output });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ Gemini API error details:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch AI recommendation" },
-      { status: 500 }
-    );
+
+    // Narrow unknown error to Error type safely
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to fetch AI recommendation";
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,24 +1,36 @@
 "use client";
 import { useEffect, useState } from "react";
 
+// ✅ Define card and props types
+type Card = { number: string; suit: string };
+
+interface AnimatedCard extends Card {
+  show: boolean;
+}
+
+interface DealerHandProps {
+  dealerCards: Card[];
+  score: number;
+  resetSignal: number;
+  faceDown?: boolean;
+}
+
 export default function DealerHand({
   dealerCards,
   score,
   resetSignal,
   faceDown = false,
-}: any) {
+}: DealerHandProps) {
   const [animatedDealerCards, setAnimatedDealerCards] = useState<
-    { number: string; suit: string; show: boolean }[]
+    AnimatedCard[]
   >([]);
 
+  // Animate cards based on faceDown prop
   useEffect(() => {
-    if (faceDown) {
-      setAnimatedDealerCards(dealerCards.map((c) => ({ ...c, show: false })));
-    } else {
-      setAnimatedDealerCards(dealerCards.map((c) => ({ ...c, show: true })));
-    }
+    setAnimatedDealerCards(dealerCards.map((c) => ({ ...c, show: !faceDown })));
   }, [dealerCards, faceDown]);
 
+  // Reset cards on resetSignal
   useEffect(() => {
     setAnimatedDealerCards([]);
   }, [resetSignal]);
